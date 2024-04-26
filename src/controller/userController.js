@@ -1,37 +1,35 @@
 const User = require('../models/user')
 const jwt = require('jsonwebtoken')
 
-const signToken = id =>{
-  return jwt.sign({id: id}, process.env.JWT_SECRET_KEY || 'test', {
-      expiresIn: process.env.JWT_EXPIRES_IN || '90d'
-  })
-}
+const JWT_SECRET_KEY = "mysecretkey";
 
-
-
-const createSendToken = (user, statusCode, res) =>{
-  const token = signToken(user._id)
-
+const signToken = (id) => {
+  return jwt.sign({ id }, JWT_SECRET_KEY, {
+    expiresIn: "24h" // Example: token expires in 24 hours
+  });
+};
+const createSendToken = (user, statusCode, res) => {
+  const token = signToken(user._id);
+  
   const cookieOptions = {
-    expiresIn: new Date( Date.now () * process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000)
-  ,
-  httpOnly: true
+    expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Example: token expires in 30 days
+    httpOnly: true,
+  };
+  
+  if (process.env.NODE_ENV === 'production') {
+    cookieOptions.secure = true; // Secure cookie in production
   }
 
-  res.cookie("jwt", token ,cookieOptions)
-
-  user.password = undefined
-
-  if(process.env.NODE_ENV === "production") cookieOptions.seucure = true
-  res.status(statusCode).json({
-      status: true,
-      token,
-      data: {
+  res.status(statusCode)
+     .cookie("jwt", token, cookieOptions)
+     .json({
+        success: true,
+        token,
+        data: {
           user
-      }
-  })
-}
-
+        }
+     });
+};
 
 
 const createUser = async (req, res) => {
@@ -39,7 +37,7 @@ const createUser = async (req, res) => {
     const user = new User(req.body);
     user.code = Date.now();
     await user.save();
-    const token = await user.generateAuthToken();
+    // const token = await user.generateAuthToken();
 
     console.log('token: ' + token);
 
@@ -71,8 +69,8 @@ const forgetPassword = async (req, res) => {
 const login = async (req, res) => {
   try {
     const user = await User.findByCredentials(req.body.email, req.body.password)
-    const token = await user.generateAuthToken()
-    res.send({ user, token })
+    // const token = await user.generateAuthToken()
+    createSendToken(user, 200, res);
   } catch (e) {
     res.status(400).send()
     console.log(e)
@@ -115,7 +113,7 @@ const updateUser = async (req, res) => {
     const usr = req.body
     const userOld = await User.findById(id).exec()
     const user = await User.findByIdAndUpdate(id, usr, { new: true }).exec()
-    const token = await user.generateAuthToken()
+    // const token = await user.generateAuthToken()
 
     if (user.email !== userOld.email || !(user.isEmailRegistered)) {
       try {
@@ -130,7 +128,7 @@ const updateUser = async (req, res) => {
       console.log("email is not changed or already registered")
     }
 
-    res.status(201).send({ user, token })
+    createSendToken(user, 200, res);
   } catch (e) {
     res.status(400).send(e)
   }

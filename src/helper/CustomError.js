@@ -1,10 +1,17 @@
-class CustomError extends Error {
-    constructor(statusCode, message, errors) {
-      super(message);
-      this.statusCode = statusCode;
-      this.errors = errors;
-    }
+class AppError extends Error{
+  constructor(message, StatusCode){
+      super(message)
+
+      this.statusCode = StatusCode;
+
+      this.status = `${this.statusCode}`.startsWith(4) ? "Fail" : "Error";
+
+      this.isOperational = true;
+
+
+      Error.captureStackTrace(this, this.constructor)
   }
-  
-  module.exports = CustomError;
-  
+
+}
+
+module.exports = AppError;

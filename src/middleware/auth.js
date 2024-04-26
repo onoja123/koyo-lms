@@ -1,36 +1,48 @@
 const jwt = require('jsonwebtoken')
 const User = require('../models/user')
+const { promisify } = require('util');
+const catchAsync = require('../helper/catchAsync')
 require('dotenv').config()
+const AppError = require('../helper/CustomError')
 
-const auth = async (req, res, next) => {
-  try {
-    const authorization = req.get('authorization')
-    if (authorization && authorization.startsWith('Bearer')) {
-      token = authorization.substring(7)
-    }
+const JWT_SECRET_KEY = "mysecretkey";
 
-    const decoded = jwt.verify(token, "test")
-    const user = await User.findOne({ _id: decoded._id })
-
-    const invalidToken = await User.findOne({
-      _id: decoded._id,
-      invalidatedTokens: token
-    })
-
-    if (invalidToken)
-      return res.status(401).send({ error: 'Please authenticate.' })
-
-    if (!user) {
-      throw new Error('Please Register first')
-    }
-
-    req.token = token
-    req.user = user
-    next()
-  } catch (e) {
-    // console.log(authorization)
-    res.status(401).send({ error: 'Please authenticate.' })
+const auth = catchAsync(async (req, res, next) => {
+  let token;
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1];
   }
-}
+  if (!token) {
+    return next(new AppError('You are not logged in! Please log in to get access.', 401));
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET_KEY);
+    console.log('Decoded token:', decoded);
+
+    if (!decoded.id) { // Change `_id` to `id` here
+      throw new Error('User ID not found in token payload');
+    }
+
+    const currentUser = await User.findById(decoded.id);
+    console.log('Current user:', currentUser);
+
+    if (!currentUser) {
+      return next(new AppError('The user belonging to this token does no longer exist.', 401));
+    }
+
+    if (currentUser.changedPasswordAfter(decoded.iat)) {
+      return next(new AppError('User recently changed password, please login again!', 401));
+    }
+
+    req.user = currentUser;
+    next();
+  } catch (error) {
+    console.error('Token decoding error:', error);
+    return next(new AppError('Invalid token. Please log in again.', 401));
+  }
+});
+
+
 
 module.exports = auth

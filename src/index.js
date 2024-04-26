@@ -5,6 +5,18 @@ const dotenv = require('dotenv')
 const mongoose = require('mongoose')
 const cors = require('cors')
 const app = express()
+const globalHandler = require('./controller/error.controller');
+try {
+  require('dotenv').config();
+} catch (error) {
+  console.error('Error loading .env file:', error);
+}
+
+
+console.log('Environment Variables:');
+console.log('PORT:', process.env.PORT);
+console.log('MONGODB_URI:', process.env.MONGODB_URI);
+
 
 const user = require('./routes/user')
 const assignment = require('./routes/Assignment')
@@ -24,11 +36,12 @@ const enrollmentRouter = require('./routes/enrollment')
 const deadlineRouter = require('./routes/deadlines')
 const achievementsRouter = require('./routes/achievementsRouter')
 
-const auth = require('./middleware/auth')
+app.use(globalHandler);
+
+// const auth = require('./middleware/auth')
 
 const fileUpload = require('express-fileupload')
 
-dotenv.config();
 
 // app.use(
 //   fileUpload({
@@ -41,7 +54,6 @@ dotenv.config();
 // mongodb+srv://onoja123:Gabriella12@cluster0.vrc59cx.mongodb.net/judaz?retryWrites=true&w=majority
 mongoose
   .connect('mongodb+srv://onoja123:Gabriella12@cluster0.vrc59cx.mongodb.net/judaz?retryWrites=true&w=majority',{
-    useNewUrlParser: true,
   })
   .then(() => {
     console.log('connected to MongoDB')
@@ -86,7 +98,7 @@ app.get("/", (req, res) => {
   });
 });
 
-const port = process.env.PORT || 3000; 
+const port = process.env.PORT || 3000
 app.listen(port, () => {
   console.log('app is on Port ' + port)
 })

@@ -12,6 +12,8 @@ const getAllCourses = async (req, res) => {
     // getCoursesWithPrivilege func populates users
     const courses = await Course.getCoursesWithPrivilege(user._id)
 
+    console.log(courses)
+
     let result = courses
     if (filter) result = courses.filter((course) => course.status === filter)
 

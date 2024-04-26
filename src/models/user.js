@@ -171,14 +171,25 @@ userSchema.methods.toJSON = function () {
   }
 }
 
-userSchema.methods.generateAuthToken = async function () {
-  const user = this
-  const token = jwt.sign({ _id: user._id.toString() }, process.env.SECRET_KEY || 'judaz-test', {
-    expiresIn: 86400
-  })
+userSchema.pre('save', async function (next) {
+  // Only run this function if password was actually modified
+  if (!this.isModified('password')) return next();
 
-  return token
-}
+  // Hash the password with cost of 12
+  this.password = await bcrypt.hash(this.password, 12);
+
+  // Delete passwordConfirm field
+  this.passwordConfirm = undefined;
+  next();
+});
+
+// userSchema.methods.generateAuthToken = function () {
+//   const token = jwt.sign({ _id: this._id }, process.env.JWT_SECRET_KEY || "test", {
+//     expiresIn: process.env.JWT_EXPIRES_IN || "90d"
+//   });
+//   return token;
+// };
+
 
 userSchema.statics.findByCredentials = async (email, password) => {
   const user = await User.findOne({ email })
@@ -196,16 +207,22 @@ userSchema.statics.findByCredentials = async (email, password) => {
   return user
 }
 
-userSchema.pre('save', async function (next) {
-  const user = this
+userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
+  if (this.passwordChangedAt) {
+    const changedTimestamp = parseInt(
+      this.passwordChangedAt.getTime() / 1000,
+      10
+    );
 
-  if (user.isModified('password')) {
-    user.password = await bcrypt.hash(user.password, 8)
+    return JWTTimestamp < changedTimestamp;
   }
 
-  next()
-})
+  // False means NOT changed
+  return false;
+};
+
 
 const User = mongoose.model('User', userSchema)
 
 module.exports = User
+
