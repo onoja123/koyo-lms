@@ -9,7 +9,7 @@ const auth = async (req, res, next) => {
       token = authorization.substring(7)
     }
 
-    const decoded = jwt.verify(token, process.env.SECRET_KEY)
+    const decoded = jwt.verify(token, "test")
     const user = await User.findOne({ _id: decoded._id })
 
     const invalidToken = await User.findOne({
