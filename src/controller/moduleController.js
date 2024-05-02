@@ -66,19 +66,17 @@ const deleteModule = async (request, response) => {
   try {
     const { courseId, id } = request.params;
 
-    const course = await Course.findById(courseId);
+    const course = await Course.findByIdAndUpdate(
+      courseId,
+      { $pull: { modules: { _id: id } } },
+      { new: true }
+    );
 
     if (!course)
       return response.status(404).json({ error: 'Course not found' });
 
-    const moduleToDelete = course.modules.id(id);
-
-    if (!moduleToDelete)
+    if (!course.modules.id(id))
       return response.status(404).json({ error: 'Module not found' });
-
-    moduleToDelete.remove();
-
-    await course.save();
 
     response.json(course.modulesJSON());
   } catch (err) {
@@ -86,6 +84,7 @@ const deleteModule = async (request, response) => {
     response.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
 
 
 module.exports = {

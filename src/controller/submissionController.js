@@ -107,9 +107,10 @@ const createSubmission = async (request, response) => {
 
 const updateSubmission = async (request, response) => {
   try {
-    const { courseId, assessmentId, studentId } = request.params
+    const { courseId, assessmentId, studentId } = request.params;
 
-    const result = await Submission.findOneAndUpdate(
+    // Find and update the submission
+    let result = await Submission.findOneAndUpdate(
       {
         course: courseId,
         assessment: assessmentId,
@@ -120,22 +121,24 @@ const updateSubmission = async (request, response) => {
         submittedAt: Date.now()
       },
       { new: true, omitUndefined: true }
-    ).orFail()
+    ).orFail();
 
-    await result
+
+    result = await Submission.findById(result._id)
       .populate({
         path: 'assessment',
         populate: { path: 'questions', select: '-ans' }
       })
       .populate('student', 'photo name')
-      .execPopulate()
+      .exec();
 
-    return response.json(result)
+    return response.json(result);
   } catch (err) {
-    console.log(err)
-    response.status(400).json({ error: err.message || err.toString() })
+    console.error(err);
+    response.status(500).json({ error: 'Internal Server Error' });
   }
-}
+};
+
 
 const gradeSubmission = async (request, response) => {
   try {
