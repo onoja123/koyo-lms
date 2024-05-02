@@ -27,40 +27,43 @@ const getAllSubmissions = async (request, response) => {
 
 const getOneSubmission = async (request, response) => {
   try {
-    const { courseId, assessmentId, studentId } = request.params
+    const { courseId, assessmentId, studentId } = request.params;
 
     let result = await Submission.findOne({
       course: courseId,
       assessment: assessmentId,
       student: studentId
-    })
+    });
 
-    if (!result)
+    if (!result) {
       result = await Submission.create({
         course: courseId,
         assessment: assessmentId,
         student: studentId
-      })
+      });
+    }
 
-    await result
+    result = await Submission.findById(result._id)
+
       .populate({
         path: 'assessment',
         populate: { path: 'questions', select: '-ans' }
       })
       .populate('student', 'photo name')
-      .execPopulate()
+      .exec();
 
     if (result.assessment.type === 'Exam') {
-      result.numberOfExamJoins = result.numberOfExamJoins + 1
-      await result.save()
+      result.numberOfExamJoins = result.numberOfExamJoins + 1;
+      await result.save();
     }
 
-    return response.json(result)
+    return response.json(result);
   } catch (err) {
-    console.log(err)
-    response.status(400).json({ error: err.message || err.toString() })
+    console.error(err);
+    response.status(500).json({ error: 'Internal Server Error' });
   }
-}
+};
+
 
 // const createSubmission = async (request, response) => {
 //   try {
