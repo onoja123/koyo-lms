@@ -72,13 +72,13 @@ const deleteModule = async (request, response) => {
       { new: true }
     );
 
-    if (!course)
-      return response.status(404).json({ error: 'Course not found' });
+    // if (!course)
+    //   return response.status(404).json({ error: 'Course not found' });
 
     const deletedModule = course.modules.id(id);
 
-    if (!deletedModule)
-      return response.status(404).json({ error: 'Module not found' });
+    // if (!deletedModule)
+    //   return response.status(404).json({ error: 'Module not found' });
 
     response.json(course.modulesJSON());
   } catch (err) {
