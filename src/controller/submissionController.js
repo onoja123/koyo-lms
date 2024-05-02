@@ -62,24 +62,45 @@ const getOneSubmission = async (request, response) => {
   }
 }
 
+// const createSubmission = async (request, response) => {
+//   try {
+//     const result = await Submission.create(request.body)
+
+//     // await result
+//     //   .populate({
+//     //     path: 'assessment',
+//     //     populate: { path: 'questions', select: '-ans' }
+//     //   })
+//     //   .populate('student', 'photo name')
+//     //   .execPopulate()
+
+//     return response.json(result)
+//   } catch (err) {
+//     console.log(err)
+//     response.status(400).json({ error: err.message || err.toString() })
+//   }
+// }
+
 const createSubmission = async (request, response) => {
   try {
-    const result = await Submission.create(request.body)
+    const result = await Submission.create(request.body);
 
-    // await result
-    //   .populate({
-    //     path: 'assessment',
-    //     populate: { path: 'questions', select: '-ans' }
-    //   })
-    //   .populate('student', 'photo name')
-    //   .execPopulate()
+    // After creating the submission, if there are fields referencing other documents,
+    // you can populate them after querying the document
+    const populatedResult = await Submission.findById(result._id)
+      .populate({
+        path: 'assessment',
+        populate: { path: 'questions', select: '-ans' }
+      })
+      .populate('student', 'photo name');
 
-    return response.json(result)
+    return response.json(populatedResult);
   } catch (err) {
-    console.log(err)
-    response.status(400).json({ error: err.message || err.toString() })
+    console.log(err);
+    response.status(400).json({ error: err.message || err.toString() });
   }
-}
+};
+
 
 const updateSubmission = async (request, response) => {
   try {
