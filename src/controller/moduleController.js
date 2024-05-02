@@ -75,7 +75,9 @@ const deleteModule = async (request, response) => {
     if (!course)
       return response.status(404).json({ error: 'Course not found' });
 
-    if (!course.modules.id(id))
+    const deletedModule = course.modules.id(id);
+
+    if (!deletedModule)
       return response.status(404).json({ error: 'Module not found' });
 
     response.json(course.modulesJSON());
