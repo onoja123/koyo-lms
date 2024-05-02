@@ -66,13 +66,13 @@ const createSubmission = async (request, response) => {
   try {
     const result = await Submission.create(request.body)
 
-    await result
-      .populate({
-        path: 'assessment',
-        populate: { path: 'questions', select: '-ans' }
-      })
-      .populate('student', 'photo name')
-      .execPopulate()
+    // await result
+    //   .populate({
+    //     path: 'assessment',
+    //     populate: { path: 'questions', select: '-ans' }
+    //   })
+    //   .populate('student', 'photo name')
+    //   .execPopulate()
 
     return response.json(result)
   } catch (err) {

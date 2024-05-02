@@ -65,26 +65,35 @@ const updateModuleItem = async (request, response) => {
 
 const deleteModuleItem = async (request, response) => {
   try {
-    const course = await Course.findById(request.params.courseId)
+    const { courseId, moduleId, id } = request.params;
 
-    const deletedModule = course.modules.id(request.params.moduleId)
-    if (!deletedModule)
-      return response.status(404).json({ error: 'module not found' })
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return response.status(404).json({ error: 'Course not found' });
+    }
 
-    const result = deletedModule.moduleItems.id(request.params.id)
+    const module = course.modules.id(moduleId);
+    if (!module) {
+      return response.status(404).json({ error: 'Module not found' });
+    }
 
-    if (!result)
-      return response.status(404).json({ error: 'module item not found' })
+    const moduleItem = module.moduleItems.id(id);
+    if (!moduleItem) {
+      return response.status(404).json({ error: 'Module item not found' });
+    }
 
-    result.remove()
+    module.moduleItems.pull(id);
 
-    const updatedCourse = await course.save()
-    response.json(updatedCourse.modulesJSON())
-  } catch (err) {
-    console.log(err)
-    response.status(400).json({ error: err.message || err.toString() })
+    const updatedCourse = await course.save();
+    
+    response.json(updatedCourse.modulesJSON());
+  } catch (error) {
+    console.error(error);
+    response.status(500).json({ error: 'Internal server error' });
   }
 }
+
+
 
 module.exports = {
   createModuleItem,

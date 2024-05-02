@@ -64,20 +64,28 @@ const updateModule = async (request, response) => {
 
 const deleteModule = async (request, response) => {
   try {
-    const course = await Course.findById(request.params.courseId).orFail()
 
-    const moduleToDelete = course.modules.id(request.params.id)
-    if (!moduleToDelete)
+    const { courseId } = request.params;
+
+    const course = await Course.findById(courseId)
+
+    if (!course)
       return response.status(404).json({ error: 'module not found' })
 
-    await moduleToDelete.remove()
-    const result = await course.save()
-    response.json(result.modulesJSON())
+      await course.findByIdAndDelete(course)
+
+      response.status(201).json({
+        success: true,
+        message: 'Module deleted successfully.',
+        data: null,
+      });
+  
   } catch (err) {
     console.log(err)
     response.status(400).json({ error: err.message || err.toString() })
   }
 }
+
 
 module.exports = {
   getAllModules,
