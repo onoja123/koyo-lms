@@ -39,6 +39,7 @@ const getOneCourse = async (req, res) => {
 }
 
 const createCourse = async (req, res) => {
+  let course = null; // Declare course variable outside try block
   try {
     const { courseName, description, image } = req.body;
 
@@ -47,7 +48,7 @@ const createCourse = async (req, res) => {
 
     const user = req.user;
 
-    let course = new Course({
+    course = new Course({
       name: courseName,
       description: description || '',
       createdBy: user._id,
@@ -82,6 +83,7 @@ const createCourse = async (req, res) => {
     return res.status(400).json({ error: err.message || err.toString() });
   }
 };
+x
 
 
 const updateCourse = async (req, res) => {
@@ -217,27 +219,28 @@ const updateEnrollment = async (req, res) => {
 }
 
 const deleteCourse = async (req, res) => {
-  const courseId = req.params.courseId
+  const courseId = req.params.courseId;
 
   try {
-    let course = await Course.findById(courseId).orFail()
+    let course = await Course.findById(courseId).orFail();
 
     for (const enrollment of course.enrollments) {
-      const user = await User.findById(enrollment.user.toString()).orFail()
+      const user = await User.findById(enrollment.user.toString()).orFail();
 
       user.enrollments = user.enrollments.filter(
         (e) => e.toString() !== courseId
-      )
-      await user.save()
+      );
+      await user.save();
     }
-    await course.remove()
+    await course.remove();
 
-    return res.status(204).end()
+    return res.status(204).end();
   } catch (err) {
-    console.log(err)
-    res.status(400).json({ error: err.message || err.toString() })
+    console.error("Error deleting course:", err);
+    return res.status(500).json({ error: "Could not delete course." });
   }
-}
+};
+
 
 const endCourse = async (req, res) => {
   const courseId = req.params.courseId

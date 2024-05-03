@@ -158,28 +158,26 @@ const editDateForAssignment = async (req, res) => {
 
 
 const deleteAssignment = async (req, res) => {
-
     const role = req.user.role;
-    const id = req.params.assigmentId;
+    const id = req.params.assignmentId; // corrected variable name
     if (role === 'instructor') {
         try {
-
-            const assignment_delete = await Assigment.findOne({ _id: id, createdBy: req.user._id });
-            if (!assignment_delete || (toString(assignment_delete.createdBy) !== toString(req.user._id))) {
-                throw new Error('this an error with ass');
+            const assignment_delete = await Assignment.findOne({ _id: id, createdBy: req.user._id });
+            if (!assignment_delete || assignment_delete.createdBy.toString() !== req.user._id.toString()) {
+                throw new Error('Error: Assignment not found or unauthorized to delete.');
             }
 
-            assignment_delete.remove();
-            res.status(201).send("deleted")
+            await assignment_delete.remove(); // use await to ensure the removal is completed
+            return res.status(204).send("Assignment deleted"); // use 204 for successful deletion
         } catch (e) {
-            res.status(400).send();
-            console.log(e)
+            console.error(e); // log the error for debugging
+            return res.status(400).send("Error deleting assignment: " + e.message); // send error message to client
         }
+    } else {
+        return res.status(403).send('You are not allowed to delete assignments.'); // 403 for forbidden
     }
-    else {
-        res.status(400).send('you are not allow to delete assignment');
-    }
-}
+};
+
 
 
 

@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true,
+    // required: true,
     minlength: 7,
     trim: true,
     validate(value) {
@@ -46,7 +46,7 @@ const userSchema = new mongoose.Schema({
   },
   passwordConfirm: {
     type: String,
-    required: true,
+    // required: true,
     minlength: [7, 'Password should have atleast 7 characters.'],
     validate: {
       validator: function (val) {
