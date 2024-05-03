@@ -253,28 +253,28 @@ const editArticle = async (req, res) => {
 }
 
 const deleteArticle = async (req, res) => {
-    
     const articleId = req.params.articleId;
-  
+
     try {
-      const article = await Article.findById(articleId);
-  
-      if (!article) {
-        return res.status(400).json({ error: 'Article not found.' });
-      }
-  
-      await Article.findByIdAndDelete(articleId);
-  
-      return res.status(200).json({
-        success: true,
-        message: 'Article deleted successfully.',
-        data: null,
-      });
-    } catch (err) {
-      console.error("Error deleting articles:", err);
-      return res.status(500).json({ error: "Could not delete articles." });
+        const article = await Article.findById(articleId);
+
+        if (!article) {
+            return res.status(404).json({ error: 'Article not found' });
+        }
+
+        await Article.findByIdAndDelete(articleId);
+
+        return res.status(200).json({
+            success: true,
+            message: 'Article deleted successfully',
+            data: null,
+        });
+    } catch (error) {
+        console.error('Error deleting article:', error);
+        return res.status(500).json({ error: 'Failed to delete article' });
     }
-  };
+};
+
 
 // const deleteArticle = async (req, res) => {
 

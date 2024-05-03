@@ -14,16 +14,20 @@ const View = require('../models/view') ;
 
 const followUser = async (req, res) => {
     try {
-        const article_Id = await Article.findOne({ _id: req.params.articleId });
-        if (!article_Id) {
-            throw new Error();
+        const article = await Article.findById(req.params.articleId);
+        
+        if (!article) {
+            return res.status(404).json({ error: "Article not found" });
         }
-        const userToFollow = await User.findOne({ _id: article_Id.authorPersonId });
+
+        const userToFollow = await User.findById(article.authorPersonId);
+        
         if (!userToFollow) {
-            throw new Error();
+            return res.status(404).json({ error: "User to follow not found" });
         }
+
         if (req.user.id === userToFollow.id) {
-            throw new Error('you can\'t follow yourself');
+            return res.status(400).json({ error: "You can't follow yourself" });
         }
 
         const existingFollow = await Follow.findOne({
@@ -32,38 +36,25 @@ const followUser = async (req, res) => {
         });
 
         if (existingFollow) {
-            throw new Error("You already follow this user!");
+            return res.status(400).json({ error: "You already follow this user" });
         }
 
-        const createFollow = new Follow({ user: req.user._id, follows: userToFollow.id });
-        createFollow.save();
+        const newFollow = new Follow({ user: req.user._id, follows: userToFollow._id });
+        await newFollow.save();
 
         await View.create({
-            personId:req.user.code  , 
-            contentId:article_Id.contentId ,
-            eventType:"FOLLOW"
-        })
-        // pushNotification(
-        //   article_Id.authorPersonId,
-        //   JSON.stringify({
-        //     title:
-        //       req.user.username +
-        //       ' has followed your article "' +
-        //       article_Id.title +
-        //       '"'
-        //   }),
-        //   'follow'
-        // )
+            personId: req.user.code,
+            contentId: article.contentId,
+            eventType: "FOLLOW"
+        });
 
-
-        res.status(200).send();
-
-
-    } catch (e) {
-        res.status(400).send('you can\'t create a follow');
-        console.log(e)
+        return res.status(200).send();
+    } catch (error) {
+        console.error(error);
+        return res.status(400).send("Failed to follow author");
     }
-}
+};
+
 
 const followers = async (req, res) => {
     try {
@@ -106,42 +97,44 @@ const follows = async (req, res) => {
 
 const unfollow = async (req, res) => {
     try {
-        const article_Id = await Article.findOne({ _id: req.params.articleId });
-        if (!article_Id) {
-            throw new Error();
+        const article = await Article.findById(req.params.articleId);
+        
+        if (!article) {
+            return res.status(404).json({ error: "Article not found" });
         }
-        const userToUnFollow = await User.findOne({ _id: article_Id.authorPersonId });
-        if (!userToUnFollow) {
-            throw new Error();
+        
+        const userToUnfollow = await User.findById(article.authorPersonId);
+        
+        if (!userToUnfollow) {
+            return res.status(404).json({ error: "User to unfollow not found" });
         }
 
-        if (req.user._id === userToUnFollow.id) {
-            throw new Error('you can\'t unfollow yourself');
+        if (req.user._id === userToUnfollow.id) {
+            return res.status(400).json({ error: "You can't unfollow yourself" });
         }
 
         await View.findOneAndDelete({
-            personId:req.user.code  , 
-            contentId:article_Id.contentId ,
-            eventType:"FOLLOW"
-        }) ; 
-
+            personId: req.user.code,
+            contentId: article.contentId,
+            eventType: "FOLLOW"
+        });
 
         const existingFollow = await Follow.findOneAndDelete({
             user: req.user._id,
-            follows: userToUnFollow._id,
+            follows: userToUnfollow._id,
         });
 
         if (!existingFollow) {
-            throw new Error("You already follow this user!");
+            return res.status(400).json({ error: "You don't follow this user" });
         }
 
-        res.status(200).send();
+        return res.status(200).send();
+    } catch (error) {
+        console.error(error);
+        return res.status(400).send("Failed to unfollow");
     }
-    catch (e) {
-        res.status(400).send('you can\'t create unfollow');
-        console.log(e)
-    }
-}
+};
+
 
 
 module.exports = { followUser, unfollow, followers, follows  }
