@@ -105,9 +105,10 @@ const deleteComment =  async (req, res) => {
     try {
         
         const article = await Article.findById({_id:req.params.articleId}) ; 
+
         if(!article)    
         {
-            throw new Error("can\'t find this article");
+            return res.status(400).json({ error: "can\'t find this article"});
         }
 
         const thisView =  await View.findOneAndDelete({
@@ -118,14 +119,13 @@ const deleteComment =  async (req, res) => {
 
         if(!thisView)
         {
-            throw new Error('this is err in deleting Error')
+            return res.status(400).json({ error: 'this is err in deleting Error'});
         }
 
         const DeleteComment= await Comment.findByIdAndRemove(
             {_id:req.params.commentId},{createdBy:req.user._id}
         );
        
-
         
         if(!DeleteComment)
         {

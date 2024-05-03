@@ -1,31 +1,30 @@
 const { update } = require('../models/Assignments');
 const Assigment = require('../models/Assignments');
 
-const createAssignment = async (req, res) => {
 
+
+const createAssignment = async (req, res) => {
     const role = req.user.role;
 
     if (role === 'instructor') {
         try {
-
             let ass = new Assigment(req.body);
             if (!ass) {
-                throw new Error('this an error with ass');
+                throw new Error('Error creating assignment.');
             }
             ass.createdAt = new Date();
             ass.createdBy = req.user.id;
-            await ass.save()
-            res.status(201).send(ass)
+            await ass.save();
+            return res.status(201).send(ass);
         } catch (e) {
-            res.status(400).send();
-            console.log(e)
+            console.error("Error creating assignment:", e);
+            return res.status(400).send({ error: "Could not create assignment." });
         }
+    } else {
+        return res.status(403).send('You are not allowed to create assignments.');
     }
-    else {
-        res.status(400).send('you are not allow to create assignment');
-        console.log('you are not instructor');
-    }
-}
+};
+
 
 
 
