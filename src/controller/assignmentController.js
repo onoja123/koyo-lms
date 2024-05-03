@@ -157,26 +157,56 @@ const editDateForAssignment = async (req, res) => {
 
 
 
+// const deleteAssignment = async (req, res) => {
+//     const role = req.user.role;
+//     const id = req.params.assignmentId; // corrected variable name
+//     if (role === 'instructor') {
+//         try {
+//             const assignment_delete = await Assignment.findOne({ _id: id, createdBy: req.user._id });
+//             if (!assignment_delete || assignment_delete.createdBy.toString() !== req.user._id.toString()) {
+//                 throw new Error('Error: Assignment not found or unauthorized to delete.');
+//             }
+
+//             await assignment_delete.remove(); // use await to ensure the removal is completed
+//             return res.status(204).send("Assignment deleted"); // use 204 for successful deletion
+//         } catch (e) {
+//             console.error(e); // log the error for debugging
+//             return res.status(400).send("Error deleting assignment: " + e.message); // send error message to client
+//         }
+//     } else {
+//         return res.status(403).send('You are not allowed to delete assignments.'); // 403 for forbidden
+//     }
+// };
+
 const deleteAssignment = async (req, res) => {
     const role = req.user.role;
-    const id = req.params.assignmentId; // corrected variable name
-    if (role === 'instructor') {
-        try {
-            const assignment_delete = await Assignment.findOne({ _id: id, createdBy: req.user._id });
-            if (!assignment_delete || assignment_delete.createdBy.toString() !== req.user._id.toString()) {
-                throw new Error('Error: Assignment not found or unauthorized to delete.');
+    const id = req.params.id;
+  
+    try {
+        if (role === 'instructor') {
+            const assignment = await Assignment.findById(id);
+  
+            if (!assignment) {
+                return res.status(400).json({ error: 'Assignment not found.' });
             }
-
-            await assignment_delete.remove(); // use await to ensure the removal is completed
-            return res.status(204).send("Assignment deleted"); // use 204 for successful deletion
-        } catch (e) {
-            console.error(e); // log the error for debugging
-            return res.status(400).send("Error deleting assignment: " + e.message); // send error message to client
+  
+            await Assignment.findByIdAndDelete(id);
+  
+            return res.status(200).json({
+                success: true,
+                message: 'Assignment deleted successfully.',
+                data: null,
+            });
+        } else {
+            return res.status(403).json({ error: 'You are not allowed to delete assignments.' });
         }
-    } else {
-        return res.status(403).send('You are not allowed to delete assignments.'); // 403 for forbidden
+    } catch (err) {
+        console.error("Error deleting assignment:", err);
+        return res.status(500).json({ error: "Could not delete assignment." });
     }
 };
+
+  
 
 
 

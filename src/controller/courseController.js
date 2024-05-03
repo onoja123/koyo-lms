@@ -218,28 +218,30 @@ const updateEnrollment = async (req, res) => {
   }
 }
 
+
 const deleteCourse = async (req, res) => {
   const courseId = req.params.courseId;
 
   try {
-    let course = await Course.findById(courseId).orFail();
+    const course = await Course.findById(courseId);
 
-    for (const enrollment of course.enrollments) {
-      const user = await User.findById(enrollment.user.toString()).orFail();
-
-      user.enrollments = user.enrollments.filter(
-        (e) => e.toString() !== courseId
-      );
-      await user.save();
+    if (!course) {
+      return res.status(400).json({ error: 'Course not found.' });
     }
-    await course.remove();
 
-    return res.status(204).end();
+    await Course.findByIdAndDelete(courseId);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Course deleted successfully.',
+      data: null,
+    });
   } catch (err) {
     console.error("Error deleting course:", err);
     return res.status(500).json({ error: "Could not delete course." });
   }
 };
+
 
 
 const endCourse = async (req, res) => {
