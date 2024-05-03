@@ -183,8 +183,7 @@ const deleteAllAssessments = async (request, response) => {
   try {
     await Assessment.deleteMany({})
 
-    //todo
-    // delete s3 files
+
     return response.status(204).end()
   } catch (err) {
     console.log(err)

@@ -99,44 +99,36 @@ const updateComment =  async (req, res) => {
     }
 }
 
-const deleteComment =  async (req, res) => {
-    
-
+const deleteComment = async (req, res) => {
     try {
+        const article = await Article.findById(req.params.articleId);
         
-        const article = await Article.findById({_id:req.params.articleId}) ; 
-
-        if(!article)    
-        {
-            return res.status(400).json({ error: "can\'t find this article"});
+        if (!article) {
+            return res.status(404).json({ error: "Article not found" });
         }
 
-        const thisView =  await View.findOneAndDelete({
-            personId:req.user.code  , 
-            contentId:article.contentId ,
-            eventType:"COMMENT CREATED"
-        }) ; 
+        const thisView = await View.findOneAndDelete({
+            personId: req.user.code,
+            contentId: article.contentId,
+            eventType: "COMMENT CREATED"
+        });
 
-        if(!thisView)
-        {
-            return res.status(400).json({ error: 'this is err in deleting Error'});
+        if (!thisView) {
+            return res.status(404).json({ error: "View not found" });
         }
 
-        const DeleteComment= await Comment.findByIdAndRemove(
-            {_id:req.params.commentId},{createdBy:req.user._id}
-        );
-       
-        
-        if(!DeleteComment)
-        {
-            throw new Error() ;
+        const deletedComment = await Comment.findByIdAndDelete(req.params.commentId);
+
+        if (!deletedComment) {
+            return res.status(404).json({ error: "Comment not found" });
         }
-        
-        res.status(200).send();    
-    } catch (e) {
-        console.log(e)
-        res.status(400).send('failed to Delete comment');
+
+        res.status(200).send();
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Failed to delete comment");
     }
-}
+};
+
 
 module.exports = {createComment , getComment , updateComment , deleteComment}
