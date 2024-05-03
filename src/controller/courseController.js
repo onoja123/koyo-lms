@@ -83,7 +83,7 @@ const createCourse = async (req, res) => {
     return res.status(400).json({ error: err.message || err.toString() });
   }
 };
-x
+
 
 
 const updateCourse = async (req, res) => {
