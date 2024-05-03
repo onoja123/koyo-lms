@@ -72,18 +72,7 @@ const createAssessment = async (request, response) => {
       questions: questionsIds
     })
 
-    await result.populate('questions').execPopulate()
-
-    const course = await Course.findById(assessment.course)
-
-    for (const enrollment of course.enrollments) {
-      const notification = new Notification({
-        to: enrollment.user,
-        type: 'alert',
-        data: `new ${assessment.type} added "${assessment.title}"`
-      })
-      notification.save().catch((err) => console.log(err))
-    }
+    // Remove the populate() call since it's not needed for an array of IDs.
 
     return response.json(result)
   } catch (err) {
@@ -91,6 +80,7 @@ const createAssessment = async (request, response) => {
     response.status(400).json({ error: err.message || err.toString() })
   }
 }
+
 
 const queuePlagarismjob = async (request, response) => {
   try {
@@ -172,15 +162,16 @@ const deleteAssessment = async (request, response) => {
   try {
     const { courseId, id } = request.params
 
-    const assessment = await Assessment.findOneAndRemove({
-      course: courseId,
-      _id: id
-    }).orFail()
+    const assessment = await Assessment.findByIdAndDelete(id)
+
+    if (!assessment) {
+      return response.status(404).json({ error: 'Assessment not found' })
+    }
 
     await Submission.deleteMany({ assessment: id, course: courseId })
 
-    for (const question of assessment.questions)
-      await Question.deleteOne({ _id: question.toString() })
+    // Use bulk delete operation to delete questions related to the assessment
+    await Question.deleteMany({ _id: { $in: assessment.questions } })
 
     return response.status(204).end()
   } catch (err) {
