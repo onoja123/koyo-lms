@@ -253,40 +253,63 @@ const editArticle = async (req, res) => {
 }
 
 const deleteArticle = async (req, res) => {
-
-
+    const articleId = req.params.articleId;
+  
     try {
-        const articleId = req.params.articleId ; 
+      const article = await Article.findById(articleId);
+  
+      if (!article) {
+        return res.status(400).json({ error: 'Article not found.' });
+      }
+  
+      await Article.findByIdAndDelete(articleId);
+  
+      return res.status(200).json({
+        success: true,
+        message: 'Article deleted successfully.',
+        data: null,
+      });
+    } catch (err) {
+      console.error("Error deleting articles:", err);
+      return res.status(500).json({ error: "Could not delete articles." });
+    }
+  };
 
-        const deletedArticle = await Article.findById(
-            { _id: articleId },
-        );
+// const deleteArticle = async (req, res) => {
 
-        if (!deletedArticle) {
-            throw new Error()
-        }
-        if (toString(deletedArticle.authorPersonId) !== toString(req.user._id)) {
-            throw new Error('can\'t with the same error');
-        }
+
+//     try {
+//         const articleId = req.params.articleId ; 
+
+//         const deletedArticle = await Article.findById(
+//             { _id: articleId },
+//         );
+
+//         if (!deletedArticle) {
+//             throw new Error()
+//         }
+//         if (toString(deletedArticle.authorPersonId) !== toString(req.user._id)) {
+//             throw new Error('can\'t with the same error');
+//         }
        
 
-        await Like.deleteMany({article: articleId}) ; 
+//         await Like.deleteMany({article: articleId}) ; 
 
-        await BookMarked.deleteMany({article : articleId}) ; 
+//         await BookMarked.deleteMany({article : articleId}) ; 
 
-        await Comment.deleteMany({article:articleId});
+//         await Comment.deleteMany({article:articleId});
 
-        await View.deleteMany({contentId:deletedArticle.contentId}) ; 
+//         await View.deleteMany({contentId:deletedArticle.contentId}) ; 
 
-        deletedArticle.remove();
-        res.status(200).json({
-            status: "success",
-        });
-    } catch (e) {
-        res.status(400).send('failed to Delete Article');
-        console.log(e)
-    }
-}
+//         deletedArticle.remove();
+//         res.status(200).json({
+//             status: "success",
+//         });
+//     } catch (e) {
+//         res.status(400).send('failed to Delete Article');
+//         console.log(e)
+//     }
+// }
 
 module.exports = { createArticle, timeline, UserArticles, articleId, editArticle, deleteArticle, getAllArticles }
 
