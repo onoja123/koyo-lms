@@ -52,6 +52,11 @@ const createCourse = async (req, res) => {
       image: req.body.image === undefined ? undefined : req.body.image
     })
 
+    // add an error controller for if a course is not found
+    if(!course){
+      return next (new AppError('course', 404))
+    }
+
     course.enroll(user._id, user.role)
     course = await course.save()
 
@@ -63,6 +68,12 @@ const createCourse = async (req, res) => {
     return res.status(201).json(result)
   } catch (err) {
     console.log(err)
+    // // delete course incase it creates
+
+    // if (course) {
+    //   await Course.findByIdAndDelete(Course._id)
+    // }
+
     res.status(400).json({ error: err.message || err.toString() })
   }
 }

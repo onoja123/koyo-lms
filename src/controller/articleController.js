@@ -6,6 +6,7 @@ const BookMarked = require('../models/bookmark') ;
 const Comment = require('../models/comment') ; 
 const Follow = require('../models/follow');
 const axios = require('axios');
+const AppError = require('../helper/CustomError')
 
 const recommendationEngineUrl = 'http://127.0.0.1:5000/recommend/'
 
@@ -78,9 +79,14 @@ const getAllArticles = async (req, res) => {
             path: "authorPersonId",
             select: "username name photo",
         });
-        if (!articles) {
-            throw new Error();
+
+
+        if(!articles){
+            return next (new AppError('No articles found', 404))
         }
+        // if (!articles) {
+        //     throw new Error();
+        // }
 
 
         res.status(201).send(articles)
@@ -99,7 +105,8 @@ const articleId = async (req, res) => {
         });
 
         if (!myarticle) {
-            throw new Error('there is no article with this id');
+
+            return next (new AppError('There is no article with this id', 404))
         }
 
         const myView = await View.findOne({
