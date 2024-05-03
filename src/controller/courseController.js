@@ -3,6 +3,7 @@ const Achievement = require('../models/achievement')
 const Course = require('../models/course')
 const Grades = require('../models/gradesSummary')
 const User = require('../models/user')
+const mongoose = require('mongoose')
 
 const getAllCourses = async (req, res) => {
   try {
@@ -38,45 +39,50 @@ const getOneCourse = async (req, res) => {
 }
 
 const createCourse = async (req, res) => {
-  if (!req.body.courseName)
-    return res.status(400).json({ error: 'missing courseName' })
-
-  const user = req.user
-
   try {
-    let course = new Course({
-      name: req.body.courseName,
-      description:
-        req.body.description === undefined ? '' : req.body.description,
-      createdBy: user._id,
-      image: req.body.image === undefined ? undefined : req.body.image
-    })
+    const { courseName, description, image } = req.body;
 
-    // add an error controller for if a course is not found
-    if(!course){
-      return next (new AppError('course', 404))
+    if (!courseName)
+      return res.status(400).json({ error: 'missing courseName' });
+
+    const user = req.user;
+
+    let course = new Course({
+      name: courseName,
+      description: description || '',
+      createdBy: user._id,
+      image: image || undefined
+    });
+
+    // Check if course is not created (unlikely, but just in case)
+    if (!course)
+      return res.status(500).json({ error: 'Failed to create course' });
+
+    // Enroll user in the course
+    course.enroll(user._id, user.role);
+    course = await course.save();
+
+    // Update user's enrollments
+    user.enrollments.push(course._id);
+    await user.save();
+
+    // Get updated list of courses with user's privileges
+    const result = await Course.getCoursesWithPrivilege(user._id);
+
+    return res.status(201).json(result);
+  } catch (err) {
+    console.error(err);
+
+    // If course is created but there's an error, delete the created course
+    if (course) {
+      await Course.findByIdAndDelete(course._id);
     }
 
-    course.enroll(user._id, user.role)
-    course = await course.save()
-
-    user.enrollments.push(course._id)
-    await user.save()
-
-    const result = await Course.getCoursesWithPrivilege(user._id)
-
-    return res.status(201).json(result)
-  } catch (err) {
-    console.log(err)
-    // // delete course incase it creates
-
-    // if (course) {
-    //   await Course.findByIdAndDelete(Course._id)
-    // }
-
-    res.status(400).json({ error: err.message || err.toString() })
+    // Handle error response
+    return res.status(400).json({ error: err.message || err.toString() });
   }
-}
+};
+
 
 const updateCourse = async (req, res) => {
   const courseId = req.params.courseId
@@ -111,52 +117,66 @@ const updateCourse = async (req, res) => {
 }
 
 const enroll = async (req, res) => {
-  const courseId = req.params.courseId
-  const userId = req.body.userId
+  const courseId = req.params.courseId;
+  const userId = req.body.userId;
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
   try {
-    const user = await User.findById(userId).orFail()
-    let course = await Course.findById(courseId).orFail()
-    course = course.enroll(user._id, user.role)
+    const user = await User.findById(userId).orFail().session(session);
+    let course = await Course.findById(courseId).orFail().session(session);
 
-    // const result = await course.save()
-    await course.save()
-    user.enrollments.push(courseId)
-    await user.save()
+    course = course.enroll(user._id, user.role);
+    await course.save({ session });
+    user.enrollments.push(courseId);
+    await user.save({ session });
 
     //send to machine learning api
 
-    const result = await Course.getCoursesWithPrivilege(userId)
+    const result = await Course.getCoursesWithPrivilege(userId).session(session);
 
-    return res.status(200).json(result)
+    await session.commitTransaction();
+
+    return res.status(200).json(result);
   } catch (err) {
-    console.log(err)
-    res.status(400).json({ error: err.message || err.toString() })
+    console.log(err);
+    await session.abortTransaction();
+    res.status(400).json({ error: err.message || err.toString() });
+  } finally {
+    session.endSession();
   }
 }
 
 const unEnroll = async (req, res) => {
-  const courseId = req.params.courseId
-  const userId = req.body.userId
+  const courseId = req.params.courseId;
+  const userId = req.body.userId;
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
   try {
-    const user = await User.findById(userId).orFail()
-    let course = await Course.findById(courseId).orFail()
-    course = course.unEnroll(user._id)
+    const user = await User.findById(userId).orFail().session(session);
+    let course = await Course.findById(courseId).orFail().session(session);
 
-    // const result = await course.save()
-    await course.save()
-    user.enrollments = user.enrollments.filter((e) => e.toString() !== courseId)
-    await user.save()
+    course = course.unEnroll(user._id);
+    await course.save({ session });
+    user.enrollments = user.enrollments.filter((e) => e.toString() !== courseId);
+    await user.save({ session });
 
     //send to machine learning api
 
-    const result = await Course.getCoursesWithPrivilege(userId)
+    const result = await Course.getCoursesWithPrivilege(userId).session(session);
 
-    return res.status(200).json(result)
+    await session.commitTransaction();
+
+    return res.status(200).json(result);
   } catch (err) {
-    console.log(err)
-    res.status(400).json({ error: err.message || err.toString() })
+    console.log(err);
+    await session.abortTransaction();
+    res.status(400).json({ error: err.message || err.toString() });
+  } finally {
+    session.endSession();
   }
 }
 
