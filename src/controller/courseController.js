@@ -122,64 +122,69 @@ const enroll = async (req, res) => {
   const courseId = req.params.courseId;
   const userId = req.body.userId;
 
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
   try {
-    const user = await User.findById(userId).orFail().session(session);
-    let course = await Course.findById(courseId).orFail().session(session);
+    // Find the user by ID
+    const user = await User.findById(userId);
 
-    course = course.enroll(user._id, user.role);
-    await course.save({ session });
+    // Find the course by ID
+    let course = await Course.findById(courseId);
+
+    // Ensure both user and course exist
+    if (!user || !course) {
+      return res.status(404).json({ error: 'User or course not found' });
+    }
+
+    // Check if the user is already enrolled in the course
+    if (user.enrollments.includes(courseId)) {
+      return res.status(400).json({ error: 'User is already enrolled in the course' });
+    }
+
+    // Enroll the user in the course and save changes
+    course.enroll(user._id, user.role);
+    await course.save();
+
+    // Update user's enrollments and save changes
     user.enrollments.push(courseId);
-    await user.save({ session });
+    await user.save();
 
-    //send to machine learning api
+    // Retrieve updated course list with user's privileges
+    const result = await Course.getCoursesWithPrivilege(userId);
 
-    const result = await Course.getCoursesWithPrivilege(userId).session(session);
-
-    await session.commitTransaction();
-
+    // Return the updated course list
     return res.status(200).json(result);
   } catch (err) {
     console.log(err);
-    await session.abortTransaction();
     res.status(400).json({ error: err.message || err.toString() });
-  } finally {
-    session.endSession();
   }
-}
+};
+
 
 const unEnroll = async (req, res) => {
   const courseId = req.params.courseId;
   const userId = req.body.userId;
 
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
   try {
-    const user = await User.findById(userId).orFail().session(session);
-    let course = await Course.findById(courseId).orFail().session(session);
+    const user = await User.findById(userId)
+    let course = await Course.findById(courseId)
+
+    if (!user || !course) {
+      return res.status(404).json({ error: 'User or course not found' });
+    }
 
     course = course.unEnroll(user._id);
-    await course.save({ session });
+    await course.save();
+
+
     user.enrollments = user.enrollments.filter((e) => e.toString() !== courseId);
-    await user.save({ session });
+    await user.save();
 
-    //send to machine learning api
-
-    const result = await Course.getCoursesWithPrivilege(userId).session(session);
-
-    await session.commitTransaction();
+    const result = await Course.getCoursesWithPrivilege(userId)
 
     return res.status(200).json(result);
   } catch (err) {
     console.log(err);
-    await session.abortTransaction();
     res.status(400).json({ error: err.message || err.toString() });
-  } finally {
-    session.endSession();
-  }
+  } 
 }
 
 const getEnrollments = async (req, res) => {
