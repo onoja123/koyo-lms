@@ -46,7 +46,7 @@ const createComment = async (request, response) => {
 
     result = await result
       .populate('comments.user', '_id name username photo')
-      .execPopulate()
+
 
     return response.json(result)
   } catch (err) {
@@ -82,7 +82,6 @@ const deleteComment = async (request, response) => {
 
     result = await result
       .populate('comments.user', '_id name username photo')
-      .execPopulate()
 
     return response.json(result)
   } catch (err) {

@@ -3,7 +3,7 @@ const Achievement = require('../models/achievement')
 const Course = require('../models/course')
 const Grades = require('../models/gradesSummary')
 const User = require('../models/user')
-const mongoose = require('mongoose')
+
 
 const getAllCourses = async (req, res) => {
   try {
@@ -102,14 +102,14 @@ const updateCourse = async (req, res) => {
     const result = await Course.findByIdAndUpdate(courseId, course, {
       new: true,
       omitUndefined: true
-    }).orFail()
+    })
 
     await result
       .populate(
         'enrollments.user createdBy',
         '_id name username email code photo'
       )
-      .execPopulate()
+
 
     return res.status(200).json(result)
   } catch (err) {
@@ -193,7 +193,7 @@ const getEnrollments = async (req, res) => {
 
     const course = await Course.findById(courseId)
       .populate('enrollments.user')
-      .exec()
+
 
     return res.status(200).json(course.enrollments)
   } catch (err) {
@@ -209,7 +209,7 @@ const updateEnrollment = async (req, res) => {
 
     const course = await Course.findById(courseId)
       .populate('enrollments.user')
-      .exec()
+
 
     const enrollmentToUpdate = course.enrollments.id(enrollmentId)
 

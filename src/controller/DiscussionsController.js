@@ -6,11 +6,11 @@ const Discussions = require('../models/Discussions')
 const getAllDiscussions = async (req, res) => {
     try {
         const courseId = req.params.courseId;
-        const course = await Course.findOne({_id: courseId}).exec()
+        const course = await Course.findOne({_id: courseId})
         const discussions = await Discussions.find({ course: course })
           .populate('user')
           .populate('comments.user')
-          .exec()
+          
         res.status(200).send(discussions)
     } catch (e) {
         res.status(400).send("cant get discussions: "+e)
@@ -107,7 +107,7 @@ const editComment = async (req, res) => {
             if (value._id===commentOld._id){return commentNew}
             else{return value}
         });
-        await Discussions.findByIdAndUpdate(discussionId,discussion).exec()
+        await Discussions.findByIdAndUpdate(discussionId,discussion)
         res.status(201).send(discussion)
     } catch (e){
         res.status(400).send("cant remove comment: "+e)

@@ -66,26 +66,28 @@ const deleteModule = async (request, response) => {
   try {
     const { courseId, id } = request.params;
 
-    const course = await Course.findByIdAndUpdate(
-      courseId,
-      { $pull: { modules: { _id: id } } },
-      { new: true }
-    );
+    // Find the course by ID and delete it
+    const course = await Course.findByIdAndDelete(courseId);
 
-    // if (!course)
-    //   return response.status(404).json({ error: 'Course not found' });
+    if (!course) {
+      return response.status(404).json({ error: 'Course not found' });
+    }
 
+    // Find the deleted module
     const deletedModule = course.modules.id(id);
 
-    // if (!deletedModule)
-    //   return response.status(404).json({ error: 'Module not found' });
+    if (!deletedModule) {
+      return response.status(404).json({ error: 'Module not found' });
+    }
 
+    // Return the modules of the deleted course
     response.json(course.modulesJSON());
   } catch (err) {
     console.error(err);
     response.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
 
 
 
