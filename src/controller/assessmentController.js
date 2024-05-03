@@ -45,9 +45,8 @@ const getOneAssessment = async (request, response) => {
       course: courseId,
       _id: id
     })
-      .orFail()
+
       .populate('questions')
-      .exec()
 
     return response.json(assetment)
   } catch (err) {
