@@ -3,45 +3,35 @@ const Article = require('../models/article') ;
 const View = require('../models/view') ;
 
 
-const createComment =  async(req,res)=>{
+const createComment = async (req, res) => {
+    try {
+        const article = await Article.findById(req.params.articleId);
 
-    try {    
-        const article = await Article.findById({_id:req.params.articleId}) ; 
-
-        if(!article)    
-        {
-            throw new Error("can\'t find this article");
+        if (!article) {
+            return res.status(404).json({ error: "Article not found" });
         }
-        const NewComment = new Comment({ body:req.body.body });
-        NewComment.createdBy = req.user._id ; 
-        NewComment.article = req.params.articleId ; 
 
-        NewComment.save() ; 
+        const newComment = new Comment({
+            body: req.body.body,
+            createdBy: req.user._id,
+            article: req.params.articleId
+        });
+
+        await newComment.save();
+
         await View.create({
-            personId:req.user.code  , 
-            contentId:article.contentId ,
-            eventType:"COMMENT CREATED"
-        })
-        // pushNotification(
-        //   article.authorPersonId,
-        //   JSON.stringify({
-        //     title:
-        //       req.user.username +
-        //       ' has commented on your article "' +
-        //       article.title +
-        //       '"'
-        //   }),
-        //   'comment'
-        // )
+            personId: req.user.code,
+            contentId: article.contentId,
+            eventType: "COMMENT CREATED"
+        });
 
-        res.status(200).send()
-    }
-    catch(e)
-    {
-        res.status(400).send('failed to comment on  article')
-        console.log(e)
+        return res.status(200).send();
+    } catch (error) {
+        console.error(error);
+        return res.status(400).send("Failed to comment on article");
     }
 };
+
 
 const getComment = async(req,res)=>{
 
