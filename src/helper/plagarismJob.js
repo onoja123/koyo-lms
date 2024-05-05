@@ -8,7 +8,7 @@ const crawler = require('crawler-request')
 const Course = require('../models/course')
 const { Assessment } = require('../models/assessment')
 
-const plagiarismURL = 'http://127.0.0.1:5000/checkPlagiarism/many'
+const plagiarismURL = 'https://koyo-lms.onrender.com/checkPlagiarism/many'
 
 const plagarismMap = {
   '-2': 'processing',

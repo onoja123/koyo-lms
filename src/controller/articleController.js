@@ -8,7 +8,7 @@ const Follow = require('../models/follow');
 const axios = require('axios');
 const AppError = require('../helper/CustomError')
 
-const recommendationEngineUrl = 'http://127.0.0.1:5000/recommend/'
+const recommendationEngineUrl = 'https://koyo-lms.onrender.com/recommend/'
 
 const createArticle = async (req, res) => {
     try {

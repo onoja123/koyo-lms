@@ -12,7 +12,7 @@ const { DateTime } = require('luxon')
 const Course = require('../models/course')
 const Notification = require('../models/notification')
 
-const autoGraderUrl = 'http://127.0.0.1:5000/gradeOnline'
+const autoGraderUrl = 'https://koyo-lms.onrender.com/gradeOnline'
 
 const getAllAssessments = async (request, response) => {
   try {
@@ -122,40 +122,47 @@ const queuePlagarismjob = async (request, response) => {
 
 const queueAutoGrade = async (request, response) => {
   try {
-    const { courseId, assessmentId } = request.params
+    const { courseId, assessmentId } = request.params;
 
+    // Update submission statuses to 'processing'
     await Submission.updateMany(
       { assessment: assessmentId, submittedAt: { $exists: true } },
-      { autoGradingStatus: 'processing' },
-      { omitUndefined: true }
-    )
+      { autoGradingStatus: 'processing' }
+    );
 
-    const date = DateTime.now().plus({ seconds: 5 }).toJSDate()
-    const job = schedule.scheduleJob(
-      date,
-      autoGrade.bind(null, courseId, assessmentId)
-    )
+    // Schedule auto-grading job
+    const date = DateTime.now().plus({ seconds: 5 }).toJSDate();
+    const job = schedule.scheduleJob(date, () => {
+      autoGrade(courseId, assessmentId)
+        .then(() => {
+          // Fetch updated assessment and submissions data after grading
+          return Promise.all([
+            Assessment.findById(assessmentId).orFail(),
+            Submission.find({
+              course: courseId,
+              assessment: assessmentId,
+              submittedAt: { $exists: true }
+            })
+            .populate('student', 'photo name')
+            .populate('answers.originQuestion')
+            .populate('assessment', 'dueDate')
+            .exec()
+          ]);
+        })
+        .then(([assessmentData, submissions]) => {
+          response.json({ assessment: assessmentData, submissions });
+        })
+        .catch(err => {
+          console.error('Error processing auto-grading:', err);
+          response.status(400).json({ error: err.message || err.toString() });
+        });
+    });
 
-    const assessmentData = await Assessment.findById(assessmentId).orFail()
-    const result = await Submission.find({
-      course: courseId,
-      assessment: assessmentId,
-      submittedAt: { $exists: true }
-    })
-      .populate('student', 'photo name')
-      .populate('answers.originQuestion')
-      .populate('assessment', 'dueDate')
-      .exec()
-
-    return response.json({
-      assessment: assessmentData,
-      submissions: result
-    })
   } catch (err) {
-    console.log(err)
-    response.status(400).json({ error: err.message || err.toString() })
+    console.error('Error queuing auto-grade:', err);
+    response.status(400).json({ error: err.message || err.toString() });
   }
-}
+};
 
 const deleteAssessment = async (request, response) => {
   try {

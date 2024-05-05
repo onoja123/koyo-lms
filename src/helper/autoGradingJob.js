@@ -1,10 +1,8 @@
-const onlineGraderUrl = 'http://127.0.0.1:5000/gradeOnline'
-const fileGraderUrl = 'http://127.0.0.1:5000/grade'
+const onlineGraderUrl = 'https://koyo-lms.onrender.com/gradeOnline'
+const fileGraderUrl = 'https://koyo-lms.onrender.com/grade'
 
-const { default: axios } = require('axios')
-// const {
-//   pushNotification
-// } = require('../controller/notificationController/notificationController')
+const axios = require('axios')
+
 const { Assessment } = require('../models/assessment')
 const Course = require('../models/course')
 const Submission = require('../models/submissions')
@@ -62,35 +60,13 @@ const autoGrade = async function (courseId, assessmentId) {
       await sub.save()
     }
 
-    const course = await Course.findById(courseId)
+    // Handling auto-grading completion
+    console.log('Auto-grading completed successfully.')
 
-    const instructorEnrollments = course.getInstructors()
-
-    // for (const enrollment of instructorEnrollments) {
-    //   pushNotification(
-    //     enrollment.user,
-    //     JSON.stringify({
-    //       title: `Auto Grading done for ${assessment.title}`
-    //     })
-    //   )
-    // }
   } catch (err) {
-    console.log(err)
+    console.error('Error auto-grading submissions:', err)
 
-    const course = await Course.findById(courseId)
-    const assessment = await Assessment.findById(assessmentId)
-
-    const instructorEnrollments = course.getInstructors()
-
-    // for (const enrollment of instructorEnrollments) {
-    //   pushNotification(
-    //     enrollment.user,
-    //     JSON.stringify({
-    //       title: `Auto Grading for ${assessment.title} failed`
-    //     })
-    //   )
-    // }
-
+    // Handling errors and updating submission statuses
     await Submission.updateMany(
       { assessment: assessmentId, submittedAt: { $exists: true } },
       { autoGradingStatus: 'unGraded' },
@@ -98,5 +74,4 @@ const autoGrade = async function (courseId, assessmentId) {
     )
   }
 }
-
 module.exports = { autoGrade }
