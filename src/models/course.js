@@ -213,6 +213,4 @@ courseSchema.statics.formatCalendar = function (deadlines) {
   return result
 }
 
-const Course = mongoose.model('Course', courseSchema)
-
-module.exports = Course
+module.exports = mongoose.model('Course', courseSchema);

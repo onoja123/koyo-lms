@@ -32,7 +32,7 @@ achievementsSchema.set('toObject', {
   transform: (document, returnedObject) => {
     delete returnedObject._id
   },
-  virtuals: true
+  virtuals: true,
 })
 
 const Achievement = mongoose.model('Achievement', achievementsSchema)

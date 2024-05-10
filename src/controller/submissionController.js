@@ -196,8 +196,8 @@ const getGradesGradeBook = async (request, response) => {
         'type title maxScore weight closeAt openAt dueDate'
       )
       .populate('student', 'photo name')
-      .exec()
 
+      .lean();
     result = result.filter((submission) => submission.submittedAt)
 
     return response.json(result)

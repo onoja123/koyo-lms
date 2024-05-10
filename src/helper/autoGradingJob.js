@@ -69,9 +69,10 @@ const autoGrade = async function (courseId, assessmentId) {
     // Handling errors and updating submission statuses
     await Submission.updateMany(
       { assessment: assessmentId, submittedAt: { $exists: true } },
-      { autoGradingStatus: 'unGraded' },
+      { autoGradingStatus: 'error' },
       { omitUndefined: true }
     )
   }
 }
+
 module.exports = { autoGrade }

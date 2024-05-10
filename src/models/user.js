@@ -8,7 +8,6 @@ require('dotenv').config()
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
-    required: true,
     unique: [true, 'This username is already taken!'],
     lowercase: true
   },
@@ -20,7 +19,6 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     unique: true,
-    required: true,
     trim: true,
     lowercase: true,
     validate(value) {

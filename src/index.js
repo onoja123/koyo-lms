@@ -35,6 +35,7 @@ const gradeBookRouter = require('./routes/gradeBook')
 const enrollmentRouter = require('./routes/enrollment')
 const deadlineRouter = require('./routes/deadlines')
 const achievementsRouter = require('./routes/achievementsRouter')
+const adminRoute = require('./routes/adminRouter')
 
 app.use(globalHandler);
 
@@ -90,6 +91,8 @@ app.use('/courses/:courseId/modules', courseModule)
 app.use('/courses/:courseId/modules/:moduleId/module-item', courseModuleItem)
 app.use('/courses/:courseId/lectures', lectureRouter)
 app.use('/achievements', achievementsRouter)
+app.use('/admin', adminRoute)
+
 
 app.get("/", (req, res) => {
   res.status(200).send({
@@ -102,3 +105,5 @@ const port = process.env.PORT || 3000
 app.listen(port, () => {
   console.log('app is on Port ' + port)
 })
+
+module.exports = app; 

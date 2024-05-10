@@ -1,16 +1,14 @@
 const { default: axios } = require('axios')
 const Achievement = require('../models/achievement')
-const Course = require('../models/course')
+const Course  = require('../models/course')
 const Grades = require('../models/gradesSummary')
 const User = require('../models/user')
-
 
 const getAllCourses = async (req, res) => {
   try {
     const user = req.user
     const filter = req.query.filter
 
-    // getCoursesWithPrivilege func populates users
     const courses = await Course.getCoursesWithPrivilege(user._id)
 
     console.log(courses)
@@ -23,7 +21,7 @@ const getAllCourses = async (req, res) => {
     console.log(err)
     res.status(400).json({ error: err.message || err.toString() })
   }
-}
+};
 
 const getOneCourse = async (req, res) => {
   try {
@@ -38,30 +36,37 @@ const getOneCourse = async (req, res) => {
   }
 }
 
+
+
 const createCourse = async (req, res) => {
-  let course = null; // Declare course variable outside try block
   try {
-    const { courseName, description, image } = req.body;
-
-    if (!courseName)
-      return res.status(400).json({ error: 'missing courseName' });
-
     const user = req.user;
 
-    course = new Course({
-      name: courseName,
-      description: description || '',
-      createdBy: user._id,
-      image: image || undefined
+    // Debugging console.log to check request body
+    console.log('Request Body:', req.body);
+
+    // Debugging console.log
+    console.log('Creating Course:', req.body.courseName, req.body.description, req.user._id);
+
+    // Check if courseName is defined
+    if (!req.body.courseName) {
+      console.log('courseName is undefined!');
+      return res.status(400).json({ error: 'missing courseName' });
+    }
+
+    // Create a new Course object using provided // createCourse function
+    const course = new Course({
+      name: req.body.courseName,
+      description: req.body.description,
+      createdBy: req.user._id,
+      image: req.body.image,
     });
 
-    // Check if course is not created (unlikely, but just in case)
-    if (!course)
-      return res.status(500).json({ error: 'Failed to create course' });
+    // Save the course
+    await course.save();
 
     // Enroll user in the course
     course.enroll(user._id, user.role);
-    course = await course.save();
 
     // Update user's enrollments
     user.enrollments.push(course._id);
@@ -70,19 +75,16 @@ const createCourse = async (req, res) => {
     // Get updated list of courses with user's privileges
     const result = await Course.getCoursesWithPrivilege(user._id);
 
+    // Send response
     return res.status(201).json(result);
   } catch (err) {
-    console.error(err);
-
-    // If course is created but there's an error, delete the created course
-    if (course) {
-      await Course.findByIdAndDelete(course._id);
-    }
+    // console.log(err);
 
     // Handle error response
     return res.status(400).json({ error: err.message || err.toString() });
   }
 };
+
 
 
 
@@ -341,3 +343,4 @@ module.exports = {
   getDeadLinesCalendar,
   endCourse
 }
+

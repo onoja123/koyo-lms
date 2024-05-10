@@ -20,7 +20,7 @@ const auth = catchAsync(async (req, res, next) => {
     const decoded = jwt.verify(token, JWT_SECRET_KEY);
     console.log('Decoded token:', decoded);
 
-    if (!decoded.id) { // Change `_id` to `id` here
+    if (!decoded.id) {
       throw new Error('User ID not found in token payload');
     }
 
