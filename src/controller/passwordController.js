@@ -82,4 +82,3 @@ const ResetPassword = async(req,res)=>{
 }
 
 module.exports = {RECOVER, RESET , ResetPassword}
-

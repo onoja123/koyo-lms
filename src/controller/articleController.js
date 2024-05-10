@@ -313,4 +313,3 @@ const deleteArticle = async (req, res) => {
 // }
 
 module.exports = { createArticle, timeline, UserArticles, articleId, editArticle, deleteArticle, getAllArticles }
-

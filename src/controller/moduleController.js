@@ -29,11 +29,11 @@ const createModule = async (request, response) => {
     return response.status(400).json({ error: 'missing Module title' })
 
   try {
-    const course = await Course.findById(request.params.courseId)
+    const course = await Course.findById(request.params.courseId).orFail()
     await course.modules.push({ title: body.title })
     const updatedCourse = await course.save()
 
-    return response.json(updatedCourse)
+    return response.json(updatedCourse.modulesJSON())
   } catch (err) {
     console.log(err)
     response.status(400).json({ error: err.message || err.toString() })

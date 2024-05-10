@@ -135,6 +135,7 @@ const queueAutoGrade = async (request, response) => {
     const job = schedule.scheduleJob(date, () => {
       autoGrade(courseId, assessmentId)
         .then(() => {
+          // Fetch updated assessment and submissions data after grading
           return Promise.all([
             Assessment.findById(assessmentId).orFail(),
             Submission.find({

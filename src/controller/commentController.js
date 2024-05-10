@@ -32,20 +32,30 @@ const createComment = async (req, res) => {
     }
 };
 
-const getComment = async (req, res) => {
-    try {
-      const article = await Article.find({ _id: req.params.articleId });
-      if (article.length === 0) {
-        res.status(400).send('failed to get comments on Articles');
-        return;
-      }
-  
-      const comments = await Comment.find({ article: req.params.articleId }).populate({ path: "createdBy", select: "name photo" });
-      res.status(201).send(comments);
-    } catch (error) {
-      res.status(400).send('failed to get comments on Articles');
+
+const getComment = async(req,res)=>{
+
+    try {    
+        const article = await Article.find({_id:req.params.articleId}); 
+
+        if(!article)    
+        {
+            throw new Error("can\'t find this article");
+        }
+
+        const comments =await Comment.find({article:req.params.articleId}).populate({
+            path: "createdBy",
+            select: "name photo",
+        }) ;
+        res.status(201).send(comments)
     }
-  };
+    catch(e)
+    {
+
+        res.status(400).send('failed to get comments on Articles')
+        console.log(e)
+    }
+} ; 
 
 const updateComment =  async (req, res) => {
     

@@ -210,4 +210,4 @@ const deleteAssignment = async (req, res) => {
 
 
 
-module.exports = { createAssignment, getAllAssignment, getAssignment, showAssignment, editStatusForAssignment, editDateForAssignment, deleteAssignment };
+module.exports = { createAssignment, getAllAssignment, getAssignment, showAssignment, editStatusForAssignment, editDateForAssignment, deleteAssignment }

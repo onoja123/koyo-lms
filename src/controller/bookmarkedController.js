@@ -102,5 +102,3 @@ const Bookedby = async (req, res) => {
 
 
 module.exports = { BookMark, unBookMarked, Bookedby } ; 
-
-

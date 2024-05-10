@@ -197,7 +197,7 @@ const getGradesGradeBook = async (request, response) => {
       )
       .populate('student', 'photo name')
 
-      .lean();
+
     result = result.filter((submission) => submission.submittedAt)
 
     return response.json(result)
