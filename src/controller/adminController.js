@@ -1,6 +1,6 @@
 const Course = require('../models/course')
 const Assignment = require('../models/Assignments')
-const Assessment = require('../models/assessment')
+const { Assessment, Exam } = require('../models/assessment')
 const Comment = require('../models/comment')
 const User = require('../models/user')
 const jwt = require('jsonwebtoken')
@@ -37,29 +37,38 @@ const createSendToken = (user, statusCode, res) => {
 
 
 const getTotalCourse = async (request, response) => {
-    try {
-      const course = await Course.countDocuments()
-      response.json(course)
-    } catch (err) {
-      console.log(err)
-      response.status(400).json({ error: err.message || err.toString() })
-    }
-}
+  try {
+    const courseCount = await Course.countDocuments();
+    response.json(courseCount);
+  } catch (err) {
+    console.error(err);
+    response.status(500).json({ error: 'Internal server error' });
+  }
+};
 
 const getAllCourses = async (request, response) => {
-    try {
-      const course = await Course.find()
-      
-      response.json(course)
-    } catch (err) {
-      console.log(err)
-      response.status(400).json({ error: err.message || err.toString() })
+  try {
+    const courses = await Course.find();
+
+    if (courses.length === 0) {
+      return response.status(404).json({ error: 'No courses found' });
     }
-}
+    response.json(courses);
+  } catch (err) {
+    console.error(err);
+    response.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 
 const getOneCourse = async (request, response) => {
     try {
         const course = await Course.findById(request.params.id)
+
+        if (courses.length === 0) {
+          return response.status(404).json({ error: 'No courses found' });
+        }
+        
         response.json(course)
     } catch (err) {
         console.log(err)
@@ -69,34 +78,43 @@ const getOneCourse = async (request, response) => {
 
 
 const getTotalUser = async (request, response) => {
-    try {
-      const user = await User.countDocuments()
-      response.json(user)
-    } catch (err) {
-      console.log(err)
-      response.status(400).json({ error: err.message || err.toString() })
-    }
-}
+  try {
+    const userCount = await User.countDocuments();
+    response.json(userCount);
+  } catch (err) {
+    console.error(err);
+    response.status(500).json({ error: 'Internal server error' });
+  }
+};
 
 const getAllUsers = async (request, response) => {
-    try {
-      const user = await User.find()
-      response.json(user)
-    } catch (err) {
-      console.log(err)
-      response.status(400).json({ error: err.message || err.toString() })
+  try {
+    const users = await User.find();
+
+    if (!users) {
+      return response.status(404).json({ error: 'No user found' });
     }
-}
+
+    response.json(users);
+  } catch (err) {
+    console.error(err);
+    response.status(500).json({ error: 'Internal server error' });
+  }
+};
 
 const getOneUser = async (request, response) => {
-    try {
-        const user = await User.findById(request.params.id)
-        response.json(user)
-    } catch (err) {
-        console.log(err)
-        response.status(400).json({ error: err.message || err.toString() })
+  try {
+    const user = await User.findById(request.params.id);
+
+    if (!user) {
+      return response.status(404).json({ error: 'No user found' });
     }
-}
+    response.json(user);
+  } catch (err) {
+    console.error(err);
+    response.status(500).json({ error: 'Internal server error' });
+  }
+};
 
 
 const getTotalAssignment = async (request, response) => {
@@ -110,57 +128,58 @@ const getTotalAssignment = async (request, response) => {
 }
 
 const getAllAssignments = async (request, response) => {
-    try {
-      const assignment = await Assignment.find()
+  try {
+    const assignments = await Assignment.find();
 
-      if(!assignment){
-        response.status(404)({
-          error: 'No assignment found',
-        })
-      }
-
-      response.json(assignment)
-    } catch (err) {
-      console.log(err)
-      response.status(400).json({ error: err.message || err.toString() })
+    if (assignments.length === 0) {
+      return response.status(404).json({ error: 'No assignments found' });
     }
-}
+
+    response.json(assignments);
+  } catch (err) {
+    console.error(err);
+    response.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 
 const getOneAssignment = async (request, response) => {
-    try {
-        const assignment = await Assignment.findById(request.params.id)
+  try {
+    const assignment = await Assignment.findById(request.params.id);
 
-        if(!assignment){
-          response.status(404)({
-            error: 'No assignment found',
-          })
-        }
-        response.json(assignment)
-    } catch (err) {
-        console.log(err)
-        response.status(400).json({ error: err.message || err.toString() })
+    if (!assignment) {
+      return response.status(404).json({ error: 'No assignment found' });
     }
-}
+
+    response.json(assignment);
+  } catch (err) {
+    console.error(err);
+    response.status(500).json({ error: 'Internal server error' });
+  }
+};
 
 const getTotalAssessment = async (request, response) => {
-    try {
-      const assessment = await Assessment.countDocuments()
-      response.json(assessment)
-    } catch (err) {
-      console.log(err)
-      response.status(400).json({ error: err.message || err.toString() })
-    }
-}
+  try {
+    const assessmentCount = await BaseModel.countDocuments({ _type: 'Assessment' });
+    response.json(assessmentCount);
+  } catch (err) {
+    console.error(err);
+    response.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
+
 
 const getAllAssessment= async (request, response) => {
     try {
+
       const assessment = await Assessment.find()
 
-      if(!assessment){
-        response.status(404)({
-          error: 'No assessment found',
-        })
+      if (!assessment) {
+        return response.status(404).json({ error: 'No assessment found' });
       }
+
       response.json(assessment)
     } catch (err) {
       console.log(err)
@@ -172,11 +191,10 @@ const getOneAssessment = async (request, response) => {
     try {
         const assessment = await Assessment.findById(request.params.id)
 
-        if(!assessment){
-          response.status(404)({
-            error: 'No assessment found',
-          })
+        if (!assessment) {
+          return response.status(404).json({ error: 'No assessment found' });
         }
+        
         response.json(assessment)
     } catch (err) {
         console.log(err)
@@ -198,11 +216,10 @@ const getAllComments = async (request, response) => {
     try {
       const comment = await Comment.find()
 
-      if(!comment){
-        response.status(404)({
-          error: 'No comment found',
-        })
+      if (!comment) {
+        return response.status(404).json({ error: 'No comment found' });
       }
+
       response.json(comment)
     } catch (err) {
       console.log(err)
@@ -214,11 +231,9 @@ const getOneComment= async (request, response) => {
     try {
         const comment = await Comment.findById(request.params.id)
 
-        if(!comment){
-          response.status(404)({
-            error: 'No comment found',
-          })
-        }
+      if (!comment) {
+        return response.status(404).json({ error: 'No comment found' });
+      }
 
         response.json(comment)
     } catch (err) {
