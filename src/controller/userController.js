@@ -37,9 +37,6 @@ const createUser = async (req, res) => {
     const user = new User(req.body);
     user.code = Date.now();
     await user.save();
-    // const token = await user.generateAuthToken();
-
-    console.log('token: ' + token);
 
     // Update user's email registration status
     await User.findOneAndUpdate({ code: user.code }, { isEmailRegistered: true }).exec();
@@ -47,10 +44,15 @@ const createUser = async (req, res) => {
     // Send token and user data in response
     createSendToken(user, 201, res);
   } catch (error) {
+    if (error.code === 11000 && error.keyPattern.email) {
+      // Duplicate key error for email field
+      return res.status(400).json({ error: "Email address is already in use." });
+    }
     console.log("Error registering user:", error);
-    res.status(400).send(error);
+    res.status(500).send("Internal server error");
   }
 };
+
 
 
 const forgetPassword = async (req, res) => {

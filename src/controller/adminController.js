@@ -65,7 +65,7 @@ const getOneCourse = async (request, response) => {
     try {
         const course = await Course.findById(request.params.id)
 
-        if (courses.length === 0) {
+        if (course.length === 0) {
           return response.status(404).json({ error: 'No courses found' });
         }
         
@@ -243,21 +243,25 @@ const getOneComment= async (request, response) => {
 }
 
 const createUser = async (req, res) => {
-    try {
-      const user = new User(req.body);
-      user.code = Date.now();
-      await user.save();
-  
-      console.log('token: ' + token);
-  
-      await User.findOneAndUpdate({ code: user.code }, { isEmailRegistered: true })
-  
-      createSendToken(user, 201, res);
-    } catch (error) {
-      console.log("Error registering user:", error);
-      res.status(400).send(error);
+  try {
+    const user = new User(req.body);
+    user.code = Date.now();
+    await user.save();
+
+    // Update user's email registration status
+    await User.findOneAndUpdate({ code: user.code }, { isEmailRegistered: true }).exec();
+
+    // Send token and user data in response
+    createSendToken(user, 201, res);
+  } catch (error) {
+    if (error.code === 11000 && error.keyPattern.email) {
+      // Duplicate key error for email field
+      return res.status(400).json({ error: "Email address is already in use." });
     }
-  };
+    console.log("Error registering user:", error);
+    res.status(500).send("Internal server error");
+  }
+};
 
 
 module.exports = {
