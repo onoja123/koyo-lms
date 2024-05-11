@@ -160,7 +160,7 @@ const getOneAssignment = async (request, response) => {
 
 const getTotalAssessment = async (request, response) => {
   try {
-    const assessmentCount = await BaseModel.countDocuments({ _type: 'Assessment' });
+    const assessmentCount = await Assessment.countDocuments({ _type: 'Assessment' });
     response.json(assessmentCount);
   } catch (err) {
     console.error(err);
@@ -181,6 +181,7 @@ const getAllAssessment= async (request, response) => {
       }
 
       response.json(assessment)
+      
     } catch (err) {
       console.log(err)
       response.status(400).json({ error: err.message || err.toString() })
@@ -214,7 +215,8 @@ const getTotalComment = async (request, response) => {
 
 const getAllComments = async (request, response) => {
   try {
-    const comments = await Comment.find().populate('user', 'username');
+
+    const comments = await Comment.find()
 
     if (!comments) {
       return response.status(404).json({ error: 'No comments found' });
@@ -229,7 +231,8 @@ const getAllComments = async (request, response) => {
 
 const getOneComment = async (request, response) => {
   try {
-      const comment = await Comment.findById(request.params.id).populate('user', 'username');
+
+      const comment = await Comment.findById(request.params.id)
 
     if (!comment) {
       return response.status(404).json({ error: 'No comment found' });
