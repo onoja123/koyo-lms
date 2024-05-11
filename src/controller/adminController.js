@@ -9,7 +9,7 @@ const JWT_SECRET_KEY = "mysecretkey";
 
 const signToken = (id) => {
   return jwt.sign({ id }, JWT_SECRET_KEY, {
-    expiresIn: "24h" // Example: token expires in 24 hours
+    expiresIn: "24h"
   });
 };
 const createSendToken = (user, statusCode, res) => {
@@ -21,7 +21,7 @@ const createSendToken = (user, statusCode, res) => {
   };
   
   if (process.env.NODE_ENV === 'production') {
-    cookieOptions.secure = true; // Secure cookie in production
+    cookieOptions.secure = true;
   }
 
   res.status(statusCode)
@@ -49,6 +49,7 @@ const getTotalCourse = async (request, response) => {
 const getAllCourses = async (request, response) => {
     try {
       const course = await Course.find()
+      
       response.json(course)
     } catch (err) {
       console.log(err)
@@ -111,6 +112,13 @@ const getTotalAssignment = async (request, response) => {
 const getAllAssignments = async (request, response) => {
     try {
       const assignment = await Assignment.find()
+
+      if(!assignment){
+        response.status(404)({
+          error: 'No assignment found',
+        })
+      }
+
       response.json(assignment)
     } catch (err) {
       console.log(err)
@@ -121,6 +129,12 @@ const getAllAssignments = async (request, response) => {
 const getOneAssignment = async (request, response) => {
     try {
         const assignment = await Assignment.findById(request.params.id)
+
+        if(!assignment){
+          response.status(404)({
+            error: 'No assignment found',
+          })
+        }
         response.json(assignment)
     } catch (err) {
         console.log(err)
@@ -141,6 +155,12 @@ const getTotalAssessment = async (request, response) => {
 const getAllAssessment= async (request, response) => {
     try {
       const assessment = await Assessment.find()
+
+      if(!assessment){
+        response.status(404)({
+          error: 'No assessment found',
+        })
+      }
       response.json(assessment)
     } catch (err) {
       console.log(err)
@@ -151,6 +171,12 @@ const getAllAssessment= async (request, response) => {
 const getOneAssessment = async (request, response) => {
     try {
         const assessment = await Assessment.findById(request.params.id)
+
+        if(!assessment){
+          response.status(404)({
+            error: 'No assessment found',
+          })
+        }
         response.json(assessment)
     } catch (err) {
         console.log(err)
@@ -171,6 +197,12 @@ const getTotalComment = async (request, response) => {
 const getAllComments = async (request, response) => {
     try {
       const comment = await Comment.find()
+
+      if(!comment){
+        response.status(404)({
+          error: 'No comment found',
+        })
+      }
       response.json(comment)
     } catch (err) {
       console.log(err)
@@ -181,6 +213,13 @@ const getAllComments = async (request, response) => {
 const getOneComment= async (request, response) => {
     try {
         const comment = await Comment.findById(request.params.id)
+
+        if(!comment){
+          response.status(404)({
+            error: 'No comment found',
+          })
+        }
+
         response.json(comment)
     } catch (err) {
         console.log(err)
@@ -193,14 +232,11 @@ const createUser = async (req, res) => {
       const user = new User(req.body);
       user.code = Date.now();
       await user.save();
-      // const token = await user.generateAuthToken();
   
       console.log('token: ' + token);
   
-      // Update user's email registration status
-      await User.findOneAndUpdate({ code: user.code }, { isEmailRegistered: true }).exec();
+      await User.findOneAndUpdate({ code: user.code }, { isEmailRegistered: true })
   
-      // Send token and user data in response
       createSendToken(user, 201, res);
     } catch (error) {
       console.log("Error registering user:", error);

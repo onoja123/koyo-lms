@@ -56,7 +56,7 @@ adminRouter.get('/allcomments', getAllComments)
 adminRouter.get('/onecomment/:id', getOneComment)
 
 
-adminRouter.get('/create-user', createUser)
+adminRouter.post('/create-user', createUser)
 
 
 module.exports = adminRouter
