@@ -253,7 +253,7 @@ const getTotalComment = async (request, response) => {
 const getAllComments = async (request, response) => {
   try {
 
-    const comments = await Comment.find()
+    const comments = await Comment.find().populate('createdBy article');
 
     if (!comments) {
       return response.status(404).json({ error: 'No comments found' });
@@ -269,7 +269,7 @@ const getAllComments = async (request, response) => {
 const getOneComment = async (request, response) => {
   try {
 
-      const comment = await Comment.findById(request.params.id)
+      const comment = await Comment.findById(request.params.id).populate('createdBy article');
 
     if (!comment) {
       return response.status(404).json({ error: 'No comment found' });
