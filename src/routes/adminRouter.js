@@ -35,7 +35,7 @@ adminRouter.get('/totalusers', getTotalUser)
 
 adminRouter.get('/allusers', getAllUsers)
 
-adminRouter.get('/oneuser/:id', getOneCourse, getOneUser)
+adminRouter.get('/oneuser/:id',  getOneUser)
 
 adminRouter.get('/totalassignment', getTotalAssignment)
 
