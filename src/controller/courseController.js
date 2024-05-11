@@ -7,23 +7,29 @@ const User = require('../models/user')
 
 const getAllCourses = async (req, res) => {
   try {
-    const user = req.user
-    const filter = req.query.filter
+    if (!req.user) {
+      return res.status(400).json({ error: 'User not authenticated' });
+    }
+
+    const user = req.user;
+    const filter = req.query.filter;
 
     // getCoursesWithPrivilege func populates users
-    const courses = await Course.getCoursesWithPrivilege(user._id)
+    const courses = await Course.getCoursesWithPrivilege(user._id);
 
-    console.log(courses)
+    console.log(courses);
 
-    let result = courses
-    if (filter) result = courses.filter((course) => course.status === filter)
+    let result = courses;
+    if (filter) result = courses.filter((course) => course.status === filter);
 
-    return res.json(result)
+    return res.json(result);
   } catch (err) {
-    console.log(err)
-    res.status(400).json({ error: err.message || err.toString() })
+    console.log(err);
+    res.status(400).json({ error: err.message || err.toString() });
   }
-}
+};
+
+
 
 const getOneCourse = async (req, res) => {
   try {
