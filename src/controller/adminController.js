@@ -160,8 +160,23 @@ const getOneAssignment = async (request, response) => {
 
 const getTotalAssessment = async (request, response) => {
   try {
-    const assessmentCount = await Assessment.countDocuments({ _type: 'Assessment' });
-    response.json(assessmentCount);
+
+    const discriminators = Assessment.discriminators;
+
+    let totalCount = 0;
+
+    for (const discriminatorKey in discriminators) {
+      if (Object.hasOwnProperty.call(discriminators, discriminatorKey)) {
+
+        const model = discriminators[discriminatorKey];
+        
+        const count = await model.countDocuments();
+
+        totalCount += count;
+      }
+    }
+
+    response.json(totalCount);
   } catch (err) {
     console.error(err);
     response.status(500).json({ error: 'Internal server error' });
@@ -171,37 +186,59 @@ const getTotalAssessment = async (request, response) => {
 
 
 
-const getAllAssessment= async (request, response) => {
-    try {
 
-      const assessment = await Assessment.find()
 
-      if (!assessment) {
-        return response.status(404).json({ error: 'No assessment found' });
-      }
+const getAllAssessment = async (request, response) => {
+  try {
 
-      response.json(assessment)
-      
-    } catch (err) {
-      console.log(err)
-      response.status(400).json({ error: err.message || err.toString() })
+    const discriminators = Assessment.discriminators;
+
+
+    const results = await Promise.all(
+      Object.keys(discriminators).map(type =>
+        discriminators[type].find()
+      )
+    );
+
+    const allAssessments = results.reduce((acc, cur) => acc.concat(cur), []);
+
+    if (allAssessments.length === 0) {
+      return response.status(404).json({ error: 'No assessments found' });
     }
-}
+
+    response.json(allAssessments);
+  } catch (err) {
+    console.error(err);
+    response.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 
 const getOneAssessment = async (request, response) => {
-    try {
-        const assessment = await Assessment.findById(request.params.id)
+  try {
 
-        if (!assessment) {
-          return response.status(404).json({ error: 'No assessment found' });
-        }
-        
-        response.json(assessment)
-    } catch (err) {
-        console.log(err)
-        response.status(400).json({ error: err.message || err.toString() })
+    const discriminators = Assessment.discriminators;
+
+    const assessments = await Promise.all(
+      Object.values(discriminators).map(model =>
+        model.findById(request.params.id)
+      )
+    );
+
+    const assessment = assessments.find(result => result !== null);
+
+    if (!assessment) {
+      return response.status(404).json({ error: 'No assessment found' });
     }
-}
+
+    response.json(assessment);
+  } catch (err) {
+    console.error(err);
+    response.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
 
 const getTotalComment = async (request, response) => {
     try {
