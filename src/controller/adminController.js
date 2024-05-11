@@ -213,34 +213,34 @@ const getTotalComment = async (request, response) => {
 }
 
 const getAllComments = async (request, response) => {
-    try {
-      const comment = await Comment.find()
+  try {
+    const comments = await Comment.find().populate('user', 'username');
 
-      if (!comment) {
-        return response.status(404).json({ error: 'No comment found' });
-      }
-
-      response.json(comment)
-    } catch (err) {
-      console.log(err)
-      response.status(400).json({ error: err.message || err.toString() })
+    if (!comments) {
+      return response.status(404).json({ error: 'No comments found' });
     }
-}
 
-const getOneComment= async (request, response) => {
-    try {
-        const comment = await Comment.findById(request.params.id)
+    response.json(comments);
+  } catch (err) {
+    console.log(err);
+    response.status(400).json({ error: err.message || err.toString() });
+  }
+};
 
-      if (!comment) {
-        return response.status(404).json({ error: 'No comment found' });
-      }
+const getOneComment = async (request, response) => {
+  try {
+      const comment = await Comment.findById(request.params.id).populate('user', 'username');
 
-        response.json(comment)
-    } catch (err) {
-        console.log(err)
-        response.status(400).json({ error: err.message || err.toString() })
+    if (!comment) {
+      return response.status(404).json({ error: 'No comment found' });
     }
-}
+
+      response.json(comment);
+  } catch (err) {
+      console.log(err);
+      response.status(400).json({ error: err.message || err.toString() });
+  }
+};
 
 const createUser = async (req, res) => {
   try {
