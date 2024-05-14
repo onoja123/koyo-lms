@@ -13,10 +13,6 @@ try {
 }
 
 
-console.log('Environment Variables:');
-console.log('PORT:', process.env.PORT);
-console.log('MONGODB_URI:', process.env.MONGODB_URI);
-
 
 const user = require('./routes/user')
 const assignment = require('./routes/Assignment')
@@ -44,15 +40,7 @@ app.use(globalHandler);
 const fileUpload = require('express-fileupload')
 
 
-// app.use(
-//   fileUpload({
-//     debug: true,
-//     createParentPath: true,
-//     safeFileNames: true,
-//     preserveExtension: 4
-//   })
-// )
-// mongodb+srv://onoja123:Gabriella12@cluster0.vrc59cx.mongodb.net/judaz?retryWrites=true&w=majority
+
 mongoose
   .connect('mongodb+srv://onoja123:Gabriella12@cluster0.vrc59cx.mongodb.net/judaz?retryWrites=true&w=majority',{
   })
@@ -103,7 +91,7 @@ app.get("/", (req, res) => {
 
 const port = process.env.PORT || 3000
 app.listen(port, () => {
-  console.log('app is on Port ' + port)
+  console.log('Server is running on port ' + port)
 })
 
 module.exports = app; 
